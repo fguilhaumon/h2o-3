@@ -10,9 +10,10 @@ class H2OPCA(H2OEstimator):
     def __init__(self, model_id=None, k=None, max_iterations=None, seed=None,
                  transform=("NONE", "DEMEAN", "DESCALE", "STANDARDIZE", "NORMALIZE"),
                  use_all_factor_levels=False,
-                 pca_method=("GramSVD", "Power", "GLRM"),
+                 pca_method=("GramSVD", "Power", "GLRM", "Randomized"),
                  ignore_const_cols=True,
-                 impute_missing=False):
+                 impute_missing=False,
+                 computer_metrics=True):
         """
         Principal Components Analysis
 
@@ -41,8 +42,12 @@ class H2OPCA(H2OEstimator):
             - ``"Power"``: computation of the SVD using the power iteration method,
             - ``"GLRM"``: fit a generalized low rank model with an l2 loss function (no regularization) and solve for
               the SVD using local matrix algebra.
+        :param bool ignore_const_cols: If true, will ignore constant columns.  Default is True.
+        :param bool impute_missing:  whether to impute NA/missing values.
+        :param bool compute_metrics: whether to compute metrics on training data.  Default to True
 
         :returns: A new instance of H2OPCA.
+
         """
         super(H2OPCA, self).__init__()
         self._parms = locals()

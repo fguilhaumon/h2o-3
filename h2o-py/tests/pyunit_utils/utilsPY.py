@@ -1356,6 +1356,63 @@ def show_test_results(test_name, curr_test_val, new_test_val):
         print(pass_string)
         return 0
 
+def equal_H2OTwoDimTable(table1, table2, col_header_list, tolerance=1e-6, check_sign=False):
+    """
+    This method compares two H2OTwoDimTables and verify that their difference is less than value set in tolerance. It
+    is probably an overkill for I have assumed that the order of col_header_list may not be in the same order as
+    the values in the table.cell_values[ind][0].  In addition, I do not assume an order for the names in the
+    table.cell_values[ind][0] either for there is no reason for an order to exist.
+
+    :param table1: H2OTwoDimTable to be compared
+    :param table2: the other H2OTwoDimTable to be compared
+    :param col_header_list: list of strings denote names that we can the comparison to be performed
+    :param tolerance: default to 1e-6
+    :param check_sign: bool, determine if the sign of values are important or not.  For eigenvectors, they are not.
+    :return: True if comparison succeed and raise an error if comparison failed for whatever reason
+    """
+    num_comparison = len(set(col_header_list))
+    size1 = len(table1.cell_values)
+    size2 = len(table2.cell_values)
+
+    assert size1==size2, "The two H2OTwoDimTables are of different size!"
+    assert num_comparison<=size1, "H2OTwoDimTable do not have all the attributes specified in col_header_list."
+
+    for ind in range(num_comparison):
+        col_name = col_header_list[ind]
+        next_name=False
+
+        for name_ind1 in range(len(table1.cell_values)):
+            if not(col_name==str(table1.cell_values[name_ind1][0])):
+                continue
+            for name_ind2 in range(len(table2.cell_values)):
+                if not(col_name==str(table2.cell_values[name_ind2][0])):
+                    continue
+
+                # now we have the col header names, do the actual comparison
+                if str(table1.cell_values[name_ind1][0])==str(table2.cell_values[name_ind2][0]):
+                    for indC in range(1, len(table2.cell_values[name_ind2])):
+                        val1 = table1.cell_values[name_ind1][indC]
+                        val2 = table2.cell_values[name_ind2][indC]
+
+                        if (type(val1) == float) and (type(val2) == float):
+                            if check_sign:
+                                compare_val = abs(table1.cell_values[name_ind1][indC]-
+                                                  table2.cell_values[name_ind2][indC])
+                            else:
+                                compare_val = abs(abs(table1.cell_values[name_ind1][indC])-
+                                                  abs(table2.cell_values[name_ind2][indC]))
+                            if (compare_val > tolerance):
+                                return False
+                        else:
+                            assert False, "Tables contains non-numerical values.  Comparison is for numericals only!"
+                    next_name=True
+                    break
+                else:
+                    assert False, "Unknown metric names found in col_header_list."
+            if next_name:   # ready to go to the next name in col_header_list
+                break
+
+    return True
 
 def equal_two_arrays(array1, array2, eps, tolerance):
     """

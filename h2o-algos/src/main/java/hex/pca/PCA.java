@@ -128,8 +128,11 @@ public class PCA extends ModelBuilder<PCAModel,PCAModel.PCAParameters,PCAModel.P
               new String[pca._output._eigenvectors_raw.length][], pca._output._eigenvectors_raw);
 
       double[] vars = new double[pca._output._std_deviation.length];
+
+      pca._output._total_variance = 0;
       for (int i = 0; i < vars.length; i++) {
         vars[i] = pca._output._std_deviation[i] * pca._output._std_deviation[i];
+        pca._output._total_variance += vars[i];
       }
 
       // Importance of principal components
@@ -158,7 +161,6 @@ public class PCA extends ModelBuilder<PCAModel,PCAModel.PCAParameters,PCAModel.P
       // Fill model with eigenvectors and standard deviations
       pca._output._std_deviation = mult(svd._output._d, 1.0 / Math.sqrt(svd._output._nobs - 1.0));
       pca._output._eigenvectors_raw = svd._output._v;
-      pca._output._total_variance = svd._output._total_variance;
       buildTables(pca, svd._output._names_expanded);
     }
 
