@@ -179,13 +179,14 @@ public class PCA extends ModelBuilder<PCAModel,PCAModel.PCAParameters,PCAModel.P
       pca._output._objective = glrm._output._objective;
 
       // Fill model with eigenvectors and standard deviations
+
       double dfcorr = 1.0 / Math.sqrt(_train.numRows() - 1.0);
       pca._output._std_deviation = new double[_parms._k];
       pca._output._eigenvectors_raw = glrm._output._eigenvectors_raw;
-      pca._output._total_variance = 0;
       for(int i = 0; i < glrm._output._singular_vals.length; i++) {
         pca._output._std_deviation[i] = dfcorr * glrm._output._singular_vals[i];
       }
+      pca._output._nobs = _train.numRows();
       // Since gram = X'X/n, but variance requires n-1 in denominator
       pca._output._total_variance = gram.diagSum()*pca._output._nobs/(pca._output._nobs-1.0);
       buildTables(pca, glrm._output._names_expanded);
