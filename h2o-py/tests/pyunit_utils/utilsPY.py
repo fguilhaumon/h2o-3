@@ -1406,7 +1406,7 @@ def equal_H2OTwoDimTable(table1, table2, col_header_list, tolerance=1e-6, check_
                             if (compare_val > tolerance) and (compare_val_ratio > tolerance):
                                 return False
 
-                            new_error = max(compare_val, compare_val_ratio)
+                            new_error = min(compare_val, compare_val_ratio)
                             if new_error > worst_error:
                                 worst_error = new_error
 

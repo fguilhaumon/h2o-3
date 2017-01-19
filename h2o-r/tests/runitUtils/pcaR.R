@@ -17,7 +17,7 @@ checkSignedCols <- function(object, expected, tolerance = 1e-6) {
   return(is_flipped)
 }
 
-checkPCAModel <- function(fitH2O, fitR, tolerance = 1e-6, sort_rows = TRUE) {
+checkPCAModel <- function(fitH2O, fitR, tolerance = 1e-6, sort_rows = TRUE, compare_all_importance=TRUE) {
   k <- fitH2O@parameters$k
   pcimpR <- summary(fitR)$importance
   pcimpH2O <- fitH2O@model$importance
@@ -48,7 +48,14 @@ checkPCAModel <- function(fitH2O, fitR, tolerance = 1e-6, sort_rows = TRUE) {
   Log.info("R Importance of Components:"); print(pcimpR)
   Log.info("H2O Importance of Components:"); print(pcimpH2O)
   expect_equal(dim(pcimpH2O), dim(pcimpR))
-  pcimpH2O <- as.matrix(pcimpH2O); dimnames(pcimpH2O) <- dimnames(pcimpR)
+
+  dimnames(pcimpH2O) <- dimnames(pcimpR)
+  if (compare_all_importance) { # compare all: Standard deviation, Proportion of Variance and Cumulative Proportion
+    pcimpH2O <- as.matrix(pcimpH2O)
+  } else {  # only compare Standard deviation (the actual eigenvalues)
+    pcimpH2O <- as.matrix(pcimpH2O[1,1:3])
+    pcimpR <- pcimpR[1, 1:3]
+  }
   expect_equal(pcimpH2O, pcimpR, tolerance = tolerance, scale = 1)
   
   Log.info("Compare Principal Components between R and H2O\n") 

@@ -19,6 +19,7 @@ def pca_scoring_history_importance():
   australia = h2o.upload_file(pyunit_utils.locate("smalldata/extdata/australia.csv"))
   col_indices = list(range(0, australia.ncol))
 
+  print("transform is {0}.\n".format(transformN))
   # checking out PCA with GramSVD
   print("@@@@@@  Building PCA with GramSVD...\n")
   gramSVD = H2OPCA(k=3, transform=transformN)
@@ -26,7 +27,8 @@ def pca_scoring_history_importance():
 
   # check PCA with PCA set to Randomized
   print("@@@@@@  Building PCA with Randomized...\n")
-  randomizedPCA = H2OPCA(k=3, transform=transformN, pca_method="Randomized", compute_metrics=True, seed=12345)
+  randomizedPCA = H2OPCA(k=3, transform=transformN, pca_method="Randomized", compute_metrics=True, seed=12345,
+                         use_all_factor_levels=True)
   randomizedPCA.train(x=col_indices, training_frame=australia)
 
   # compare singular values and stuff with GramSVD
@@ -43,7 +45,7 @@ def pca_scoring_history_importance():
 
   # check PCA with PCA set to Power
   print("@@@@@@  Building PCA with Power...\n")
-  powerPCA = H2OPCA(k=3, transform=transformN, pca_method="Power", compute_metrics=True)
+  powerPCA = H2OPCA(k=3, transform=transformN, pca_method="Power", compute_metrics=True, use_all_factor_levels=True)
   powerPCA.train(x=col_indices, training_frame=australia)
 
   # compare singular values and stuff with GramSVD
