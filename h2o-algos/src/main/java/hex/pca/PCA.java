@@ -148,7 +148,7 @@ public class PCA extends ModelBuilder<PCAModel,PCAModel.PCAParameters,PCAModel.P
       pca._output._model_summary = pca._output._importance;
     }
 
-    protected void computeStatsFillModel(PCAModel pca, SVDModel svd) {
+    protected void computeStatsFillModel(PCAModel pca, SVDModel svd, Gram gram) {
       // Fill PCA model with additional info needed for scoring
       pca._output._normSub = svd._output._normSub;
       pca._output._normMul = svd._output._normMul;
@@ -161,10 +161,12 @@ public class PCA extends ModelBuilder<PCAModel,PCAModel.PCAParameters,PCAModel.P
       // Fill model with eigenvectors and standard deviations
       pca._output._std_deviation = mult(svd._output._d, 1.0 / Math.sqrt(svd._output._nobs - 1.0));
       pca._output._eigenvectors_raw = svd._output._v;
+      // Since gram = X'X/n, but variance requires n-1 in denominator
+      pca._output._total_variance = gram.diagSum()*pca._output._nobs/(pca._output._nobs-1.0);
       buildTables(pca, svd._output._names_expanded);
     }
 
-    protected void computeStatsFillModel(PCAModel pca, GLRMModel glrm) {
+    protected void computeStatsFillModel(PCAModel pca, GLRMModel glrm, Gram gram) {
       assert glrm._parms._recover_svd;
 
       // Fill model with additional info needed for scoring
@@ -183,8 +185,9 @@ public class PCA extends ModelBuilder<PCAModel,PCAModel.PCAParameters,PCAModel.P
       pca._output._total_variance = 0;
       for(int i = 0; i < glrm._output._singular_vals.length; i++) {
         pca._output._std_deviation[i] = dfcorr * glrm._output._singular_vals[i];
-        pca._output._total_variance += pca._output._std_deviation[i] * pca._output._std_deviation[i];
       }
+      // Since gram = X'X/n, but variance requires n-1 in denominator
+      pca._output._total_variance = gram.diagSum()*pca._output._nobs/(pca._output._nobs-1.0);
       buildTables(pca, glrm._output._names_expanded);
     }
 
@@ -229,6 +232,7 @@ public class PCA extends ModelBuilder<PCAModel,PCAModel.PCAParameters,PCAModel.P
       PCAModel model = null;
       DataInfo dinfo = null, tinfo = null;
       DataInfo AE = null;
+      Gram gram = null;
 
       try {
         init(true);   // Initialize parameters
@@ -243,23 +247,22 @@ public class PCA extends ModelBuilder<PCAModel,PCAModel.PCAParameters,PCAModel.P
         // store (possibly) rebalanced input train to pass it to nested SVD job
         Frame tranRebalanced = new Frame(_train);
 
+        if (_wideDataset && (!_parms._impute_missing) && tranRebalanced.hasNAs()) {
+          tinfo = new DataInfo(_train, _valid, 0, _parms._use_all_factor_levels, _parms._transform, DataInfo.TransformType.NONE, /* skipMissing */ !_parms._impute_missing, /* imputeMissing */ _parms._impute_missing, /* missingBucket */ false, /* weights */ false, /* offset */ false, /* fold */ false, /* intercept */ false);
+          DKV.put(tinfo._key, tinfo);
+
+          DKV.put(tranRebalanced._key, tranRebalanced);
+          _train = Rapids.exec(String.format("(na.omit %s)", tranRebalanced._key)).getFrame(); // remove NA rows
+          DKV.remove(tranRebalanced._key);
+        }
+
+        dinfo = new DataInfo(_train, _valid, 0, _parms._use_all_factor_levels, _parms._transform, DataInfo.TransformType.NONE, /* skipMissing */ !_parms._impute_missing, /* imputeMissing */ _parms._impute_missing, /* missingBucket */ false, /* weights */ false, /* offset */ false, /* fold */ false, /* intercept */ false);
+        DKV.put(dinfo._key, dinfo);
+
         if(_parms._pca_method == PCAParameters.Method.GramSVD) {
-          if (_wideDataset && (!_parms._impute_missing) && tranRebalanced.hasNAs()) {
-            tinfo = new DataInfo(_train, _valid, 0, _parms._use_all_factor_levels, _parms._transform, DataInfo.TransformType.NONE, /* skipMissing */ !_parms._impute_missing, /* imputeMissing */ _parms._impute_missing, /* missingBucket */ false, /* weights */ false, /* offset */ false, /* fold */ false, /* intercept */ false);
-            DKV.put(tinfo._key, tinfo);
-
-            DKV.put(tranRebalanced._key, tranRebalanced);
-            _train = Rapids.exec(String.format("(na.omit %s)", tranRebalanced._key)).getFrame(); // remove NA rows
-            DKV.remove(tranRebalanced._key);
-          }
-
-          dinfo = new DataInfo(_train, _valid, 0, _parms._use_all_factor_levels, _parms._transform, DataInfo.TransformType.NONE, /* skipMissing */ !_parms._impute_missing, /* imputeMissing */ _parms._impute_missing, /* missingBucket */ false, /* weights */ false, /* offset */ false, /* fold */ false, /* intercept */ false);
-          DKV.put(dinfo._key, dinfo);
-
           // Calculate and save Gram matrix of training data
           // NOTE: Gram computes A'A/n where n = nrow(A) = number of rows in training set (excluding rows with NAs)
           _job.update(1, "Begin distributed calculation of Gram matrix");
-          Gram gram = null;
           OuterGramTask ogtsk = null;
           GramTask gtsk = null;
 
@@ -360,7 +363,9 @@ public class PCA extends ModelBuilder<PCAModel,PCAModel.PCAParameters,PCAModel.P
 
           // Recover PCA results from SVD model
           _job.update(1, "Computing stats from SVD");
-          computeStatsFillModel(model, svd);
+          GramTask gtsk = new GramTask(_job._key, dinfo).doAll(dinfo._adaptedFrame);
+          gram = gtsk._gram;   // TODO: This ends up with all NaNs if training data has too many missing values
+          computeStatsFillModel(model, svd, gram);
 
         } else if(_parms._pca_method == PCAParameters.Method.GLRM) {
           GLRMModel.GLRMParameters parms = new GLRMModel.GLRMParameters();
@@ -393,7 +398,9 @@ public class PCA extends ModelBuilder<PCAModel,PCAModel.PCAParameters,PCAModel.P
 
           // Recover PCA results from GLRM model
           _job.update(1, "Computing stats from GLRM decomposition");
-          computeStatsFillModel(model, glrm);
+          GramTask gtsk = new GramTask(_job._key, dinfo).doAll(dinfo._adaptedFrame);
+          gram = gtsk._gram;   // TODO: This ends up with all NaNs if training data has too many missing values
+          computeStatsFillModel(model, glrm, gram);
         }
         _job.update(1, "Scoring and computing metrics on training data");
         if (_parms._compute_metrics) {

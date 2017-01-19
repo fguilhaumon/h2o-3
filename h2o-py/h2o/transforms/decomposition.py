@@ -13,7 +13,7 @@ class H2OPCA(H2OEstimator):
                  pca_method=("GramSVD", "Power", "GLRM", "Randomized"),
                  ignore_const_cols=True,
                  impute_missing=False,
-                 computer_metrics=True):
+                 compute_metrics=True):
         """
         Principal Components Analysis
 
