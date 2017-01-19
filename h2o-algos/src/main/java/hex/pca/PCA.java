@@ -385,7 +385,7 @@ public class PCA extends ModelBuilder<PCAModel,PCAModel.PCAParameters,PCAModel.P
           parms._gamma_x = parms._gamma_y = 0;
           parms._regularization_x = GlrmRegularizer.None;
           parms._regularization_y = GlrmRegularizer.None;
-          parms._init = GlrmInitialization.PlusPlus;
+          parms._init = GlrmInitialization.SVD;
 
           // Build an SVD model
           // Hack: we have to resort to unsafe type casts because _job is of Job<PCAModel> type, whereas a GLRM

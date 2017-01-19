@@ -20,18 +20,21 @@ def pca_scoring_history_importance():
   col_indices = list(range(0, australia.ncol))
 
   # checking out PCA with GramSVD
+  print("@@@@@@  Building PCA with GramSVD...\n")
   gramSVD = H2OPCA(k=3, transform=transformN)
   gramSVD.train(x=col_indices, training_frame=australia)
 
   # check PCA with PCA set to Randomized
+  print("@@@@@@  Building PCA with Randomized...\n")
   randomizedPCA = H2OPCA(k=3, transform=transformN, pca_method="Randomized", compute_metrics=True, seed=12345)
   randomizedPCA.train(x=col_indices, training_frame=australia)
 
   # compare singular values and stuff with GramSVD
+  print("@@@@@@  Comparing eigenvalues, eigenvectors between GramSVD and Randomized...\n")
   assert pyunit_utils.equal_H2OTwoDimTable(gramSVD._model_json["output"]["importance"],
                                     randomizedPCA._model_json["output"]["importance"],
-                                    ["Standard deviation"], tolerance=1e-5), \
-      "Randomized Eigenvalues are not comparable to GramSVD."
+                                    ["Standard deviation", "Cumulative Proportion", "Cumulative Proportion"],
+                                           tolerance=1e-5), "Randomized Eigenvalues are not comparable to GramSVD."
   # compare singular vectors
   assert pyunit_utils.equal_H2OTwoDimTable(gramSVD._model_json["output"]["eigenvectors"],
                                     randomizedPCA._model_json["output"]["eigenvectors"],
@@ -39,13 +42,15 @@ def pca_scoring_history_importance():
       "Randomized Eigenvectors are not comparable to GramSVD."
 
   # check PCA with PCA set to Power
+  print("@@@@@@  Building PCA with Power...\n")
   powerPCA = H2OPCA(k=3, transform=transformN, pca_method="Power", compute_metrics=True)
   powerPCA.train(x=col_indices, training_frame=australia)
 
   # compare singular values and stuff with GramSVD
+  print("@@@@@@  Comparing eigenvalues, eigenvectors between GramSVD and Power...\n")
   assert pyunit_utils.equal_H2OTwoDimTable(gramSVD._model_json["output"]["importance"],
                                            powerPCA._model_json["output"]["importance"],
-                                           ["Standard deviation"]), \
+                                           ["Standard deviation", "Cumulative Proportion", "Cumulative Proportion"]), \
       "Power Eigenvalues are not comparable to GramSVD."
   # compare singular vectors
   assert pyunit_utils.equal_H2OTwoDimTable(gramSVD._model_json["output"]["eigenvectors"],
@@ -54,18 +59,21 @@ def pca_scoring_history_importance():
       "Power Eigenvectors are not comparable to GramSVD."
 
   # check PCA with PCA set to GLRM
-  glrmPCA = H2OPCA(k=3, transform=transformN, pca_method="GLRM", compute_metrics=True, use_all_factor_levels=True)
+  print("@@@@@@  Building PCA with GLRM...\n")
+  glrmPCA = H2OPCA(k=3, transform=transformN, pca_method="GLRM", compute_metrics=True, use_all_factor_levels=True,
+                   seed=12345)
   glrmPCA.train(x=col_indices, training_frame=australia)
 
   # compare singular values and stuff with GramSVD
+  print("@@@@@@  Comparing eigenvalues, eigenvectors between GramSVD and GLRM...\n")
   assert pyunit_utils.equal_H2OTwoDimTable(gramSVD._model_json["output"]["importance"],
                                     glrmPCA._model_json["output"]["importance"],
-                                    ["Standard deviation"]), \
-      "GLRM Eigenvalues are not comparable to GramSVD."
+                                           ["Standard deviation", "Cumulative Proportion", "Cumulative Proportion"],
+                                           tolerance=1e-3), "GLRM Eigenvalues are not comparable to GramSVD."
   # compare singular vectors
   assert pyunit_utils.equal_H2OTwoDimTable(gramSVD._model_json["output"]["eigenvectors"],
                                     glrmPCA._model_json["output"]["eigenvectors"],
-                                    glrmPCA._model_json["output"]["names"]), \
+                                    glrmPCA._model_json["output"]["names"], tolerance=1e-2), \
       "GLRM Eigenvectors are not comparable to GramSVD."
 
 

@@ -1373,6 +1373,7 @@ def equal_H2OTwoDimTable(table1, table2, col_header_list, tolerance=1e-6, check_
     num_comparison = len(set(col_header_list))
     size1 = len(table1.cell_values)
     size2 = len(table2.cell_values)
+    worst_error = -1.0
 
     assert size1==size2, "The two H2OTwoDimTables are of different size!"
     assert num_comparison<=size1, "H2OTwoDimTable do not have all the attributes specified in col_header_list."
@@ -1401,8 +1402,14 @@ def equal_H2OTwoDimTable(table1, table2, col_header_list, tolerance=1e-6, check_
                             else:
                                 compare_val = abs(abs(table1.cell_values[name_ind1][indC])-
                                                   abs(table2.cell_values[name_ind2][indC]))
-                            if (compare_val > tolerance):
+                            compare_val_ratio = compare_val/max(abs(val1), abs(val2))
+                            if (compare_val > tolerance) and (compare_val_ratio > tolerance):
                                 return False
+
+                            new_error = max(compare_val, compare_val_ratio)
+                            if new_error > worst_error:
+                                worst_error = new_error
+
                         else:
                             assert False, "Tables contains non-numerical values.  Comparison is for numericals only!"
                     next_name=True
@@ -1411,7 +1418,7 @@ def equal_H2OTwoDimTable(table1, table2, col_header_list, tolerance=1e-6, check_
                     assert False, "Unknown metric names found in col_header_list."
             if next_name:   # ready to go to the next name in col_header_list
                 break
-
+    print("******* Congrats!  Test passed.  Maximum difference of your comparison is {0}".format(worst_error))
     return True
 
 def equal_two_arrays(array1, array2, eps, tolerance):
