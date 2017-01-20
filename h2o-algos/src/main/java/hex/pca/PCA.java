@@ -132,7 +132,7 @@ public class PCA extends ModelBuilder<PCAModel,PCAModel.PCAParameters,PCAModel.P
       pca._output._total_variance = 0;
       for (int i = 0; i < vars.length; i++) {
         vars[i] = pca._output._std_deviation[i] * pca._output._std_deviation[i];
-        pca._output._total_variance += vars[i];
+//        pca._output._total_variance += vars[i];
       }
 
       // Importance of principal components

@@ -71,11 +71,11 @@ def pca_scoring_history_importance():
   assert pyunit_utils.equal_H2OTwoDimTable(gramSVD._model_json["output"]["importance"],
                                     glrmPCA._model_json["output"]["importance"],
                                            ["Standard deviation", "Cumulative Proportion", "Cumulative Proportion"],
-                                           tolerance=1e-3), "GLRM Eigenvalues are not comparable to GramSVD."
+                                           tolerance=1e-2), "GLRM Eigenvalues are not comparable to GramSVD."
   # compare singular vectors
   assert pyunit_utils.equal_H2OTwoDimTable(gramSVD._model_json["output"]["eigenvectors"],
                                     glrmPCA._model_json["output"]["eigenvectors"],
-                                    glrmPCA._model_json["output"]["names"], tolerance=1e-2), \
+                                    glrmPCA._model_json["output"]["names"], tolerance=1e-1), \
       "GLRM Eigenvectors are not comparable to GramSVD."
 
 
