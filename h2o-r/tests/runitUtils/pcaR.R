@@ -50,13 +50,15 @@ checkPCAModel <- function(fitH2O, fitR, tolerance = 1e-6, sort_rows = TRUE, comp
   expect_equal(dim(pcimpH2O), dim(pcimpR))
 
   dimnames(pcimpH2O) <- dimnames(pcimpR)
+  pcimpH2O <- as.matrix(pcimpH2O)
   if (compare_all_importance) { # compare all: Standard deviation, Proportion of Variance and Cumulative Proportion
-    pcimpH2O <- as.matrix(pcimpH2O)
+    expect_equal(pcimpH2O, pcimpR, tolerance = tolerance, scale = 1)
   } else {  # only compare Standard deviation (the actual eigenvalues)
-    pcimpH2O <- as.matrix(pcimpH2O[1,1:3])
-    pcimpR <- pcimpR[1, 1:3]
+    for (ind in 1:dim(pcimpH2O)[2]) {
+      expect_equal(pcimpH2O[1,ind], pcimpR[1,ind], tolerance=tolerance)
+    }
   }
-  expect_equal(pcimpH2O, pcimpR, tolerance = tolerance, scale = 1)
+
   
   Log.info("Compare Principal Components between R and H2O\n") 
   Log.info("R Principal Components:"); print(eigvecR)

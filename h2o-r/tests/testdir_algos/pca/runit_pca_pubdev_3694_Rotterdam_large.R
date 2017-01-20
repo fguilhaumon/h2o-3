@@ -22,7 +22,8 @@ check.pca.widedata.gramSVD <- function() {
     h2o_pca <- h2o.prcomp(df, k = ranks, x = x, transform = 'STANDARDIZE', seed=12345)      # train H2O PCA
 
     # the eigenvectors and eigvalues calculated from R and H2O are close but not equal
-    isFlipped1 <- checkPCAModel(h2o_pca, pcaR, tolerance=1)
+    browser()
+    isFlipped1 <- checkPCAModel(h2o_pca, pcaR, tolerance=1e-1, compare_all_importance=FALSE)
 
     Log.info("Compare Projections into PC space")
     predR <- predict(pcaR, dfR)
