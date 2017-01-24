@@ -6,6 +6,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import water.TestUtil;
 import water.fvec.Frame;
+import water.util.Log;
 
 import static org.junit.Assert.assertTrue;
 
@@ -72,11 +73,11 @@ public class ParseTestORCCSV extends TestUtil {
             }
         }
 
-/*        for (int rowIndex = 0; rowIndex < 38; rowIndex++){
+        for (int rowIndex = 0; rowIndex < 38; rowIndex++){
             double valorc = orc_frame.vec(0).at(rowIndex);
             double valcsv = csv_frame.vec(0).at(rowIndex);
-            System.out.println("Row index is "+rowIndex+". Orc value is "+valorc+". Difference is "+(valorc-valcsv));
-        }*/
+            Log.info("Row index is "+rowIndex+". Orc value is "+valorc+". Difference is "+(valorc-valcsv));
+        }
 
         assertTrue(TestUtil.isIdenticalUpToRelTolerance(csv_frame, orc_frame, 2));
 
