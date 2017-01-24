@@ -1,6 +1,7 @@
 package water.parser;
 
 
+import org.joda.time.DateTime;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -72,8 +73,12 @@ public class ParseTestORCCSV extends TestUtil {
         }
 
         for (int rowIndex = 0; rowIndex < 38; rowIndex++){
-            double valorc = orc_frame.vec(0).at(rowIndex);
-            double valcsv = csv_frame.vec(0).at(rowIndex);
+            long valorc = (long) orc_frame.vec(0).at(rowIndex);
+            long valcsv = (long) csv_frame.vec(0).at(rowIndex);
+            DateTime orcDT = new DateTime(valorc);
+            DateTime csvDT = new DateTime(valcsv);
+            Log.info("orc time is "+orcDT.toString());
+            Log.info("csv time is "+csvDT.toString());
             Log.info("Row index is "+rowIndex+". Orc value is "+valorc+". Difference is "+(valorc-valcsv));
         }
 

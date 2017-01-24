@@ -207,19 +207,19 @@ public class OrcParser extends Parser {
     boolean timestamp = columnType.equals("timestamp");
     long [] oneColumn = col.vector;
     if(col.isRepeating) {
-      long val = timestamp ? oneColumn[0] / 1000000 : correctDateTimeStamp(oneColumn[0]);
+      long val = timestamp ? (long) oneColumn[0] / 1000000 : correctDateTimeStamp(oneColumn[0]);
       for (int rowIndex = 0; rowIndex < rowNumber; rowIndex++)
         dout.addNumCol(cIdx, val, 0);
     } else if(col.noNulls) {
       for (int rowIndex = 0; rowIndex < rowNumber; rowIndex++)
-        dout.addNumCol(cIdx, timestamp ? oneColumn[rowIndex] / 1000000 : correctDateTimeStamp(oneColumn[rowIndex]), 0);
+        dout.addNumCol(cIdx, timestamp ? (long) oneColumn[rowIndex] / 1000000 : correctDateTimeStamp(oneColumn[rowIndex]), 0);
     } else {
       boolean[] isNull = col.isNull;
       for (int rowIndex = 0; rowIndex < rowNumber; rowIndex++) {
         if (isNull[rowIndex])
           dout.addInvalidCol(cIdx);
         else
-          dout.addNumCol(cIdx, timestamp ? oneColumn[rowIndex] / 1000000 : correctDateTimeStamp(oneColumn[rowIndex]), 0);
+          dout.addNumCol(cIdx, timestamp ? (long) oneColumn[rowIndex] / 1000000 : correctDateTimeStamp(oneColumn[rowIndex]), 0);
       }
     }
   }
