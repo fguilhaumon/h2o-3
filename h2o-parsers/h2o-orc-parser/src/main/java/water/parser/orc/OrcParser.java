@@ -15,6 +15,7 @@ import water.Key;
 import water.fvec.Vec;
 import water.parser.*;
 import water.util.ArrayUtils;
+import water.util.Log;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -206,6 +207,7 @@ public class OrcParser extends Parser {
                                int rowNumber, ParseWriter dout) {
     boolean timestamp = columnType.equals("timestamp");
     long [] oneColumn = col.vector;
+    Log.info("cIdx is "+cIdx+" and orc timestamp translated is "+(new DateTime((long) oneColumn[0]/1000000)).toString());
     if(col.isRepeating) {
       long val = timestamp ? (long) oneColumn[0] / 1000000 : correctDateTimeStamp(oneColumn[0]);
       for (int rowIndex = 0; rowIndex < rowNumber; rowIndex++)
