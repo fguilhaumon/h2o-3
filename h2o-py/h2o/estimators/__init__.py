@@ -18,10 +18,11 @@ from .pca import H2OPrincipalComponentAnalysisEstimator
 from .random_forest import H2ORandomForestEstimator
 from .svd import H2OSingularValueDecompositionEstimator
 from .word2vec import H2OWord2vecEstimator
+from .xgboost import H2OXGBoostEstimator
 
 __all__ = (
     "H2OAggregatorEstimator", "H2OAutoEncoderEstimator", "H2ODeepLearningEstimator", "H2ODeepWaterEstimator",
     "H2OEstimator", "H2OGradientBoostingEstimator", "H2OGeneralizedLinearEstimator", "H2OGeneralizedLowRankEstimator",
     "H2OKMeansEstimator", "H2ONaiveBayesEstimator", "H2OPrincipalComponentAnalysisEstimator",
-    "H2ORandomForestEstimator", "H2OSingularValueDecompositionEstimator", "H2OWord2vecEstimator"
+    "H2ORandomForestEstimator", "H2OSingularValueDecompositionEstimator", "H2OWord2vecEstimator", "H2OXGBoostEstimator"
 )
